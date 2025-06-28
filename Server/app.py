@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from google.transit import gtfs_realtime_pb2
 import requests
+from time import time
 
 app = Flask(__name__)
 
@@ -25,7 +26,11 @@ def next_q_train():
 
     if arrival_times:
         arrival_times.sort()
-        return jsonify({"next_arrival_unix": arrival_times[0]})
+        minutes_away = int((arrival_times[0] - time()) / 60)
+        return jsonify({
+            "next_arrival_unix": arrival_times[0],
+            "minutes_away": minutes_away
+        })
     else:
         return jsonify({"error": "No arrivals found"}), 404
 
