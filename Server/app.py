@@ -20,7 +20,7 @@ def next_q_train():
     for entity in feed.entity:
         if not entity.HasField("trip_update"):
             continue
-        if entity.trip_update.trip.route_id != "Q" or "B":
+        if entity.trip_update.trip.route_id != "Q" or entity.trip_update.trip.route_id != "B":
             continue
         for stop_time_update in entity.trip_update.stop_time_update:
             if stop_time_update.stop_id == DEKALB_Q_MANHATTAN_STOP_ID and "Q" in entity.trip_update.trip.route_id:
