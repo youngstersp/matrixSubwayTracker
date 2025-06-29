@@ -30,24 +30,22 @@ def next_q_train():
 
     if q_arrival_times:
         q_arrival_times.sort()
-        q_unix = -1
-        b_unix = -1
         if(len(q_arrival_times) > 0):
-            q_minutes_away = int((q_arrival_times[0] - time()) / 60)
-            q_unix = q_arrival_times[0]
+            q_arrive_time = q_arrival_times[0] if q_arrival_times[0] > time() else q_arrival_times[1]
+            q_minutes_away = int((q_arrive_time - time()) / 60)
         else:
             q_minutes_away = -1
         b_arrival_times.sort()
         if(len(b_arrival_times) > 0):
-            b_minutes_away = int((b_arrival_times[0] - time()) / 60)
-            b_unix = b_arrival_times[0]
+            b_arrive_time = b_arrival_times[0] if b_arrival_times[0] > time() else b_arrival_times[1]
+            b_minutes_away = int((b_arrive_time - time()) / 60)
         else:
             b_minutes_away = -1
-        print("unixtime for Q: "+ str(q_unix) + ", " + str(q_minutes_away)+ " Minutes Away, Current Time: "+ str(time()) + ", " + str(q_unix - time()) + "Seconds Away")
+        print("unixtime for Q: "+ str(q_arrive_time) + ", " + str(q_minutes_away)+ " Minutes Away, Current Time: "+ str(time()) + ", " + str(q_arrive_time - time()) + "Seconds Away")
         return jsonify({
-            "q_next_arrival_unix": q_unix,
+            "q_next_arrival_unix": q_arrive_time,
             "q_minutes_away": q_minutes_away,
-            "b_next_arrival_unix": b_unix,
+            "b_next_arrival_unix": b_arrive_time,
             "b_minutes_away": b_minutes_away
         })
     else:
