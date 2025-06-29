@@ -6,7 +6,7 @@ from time import time
 app = Flask(__name__)
 
 FEED_URL = "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-nqrw"
-DEKALB_Q_MANHATTAN_STOP_ID = "D27N"
+DEKALB_Q_MANHATTAN_STOP_ID = "R30N"
 
 @app.route("/next_train")
 def next_q_train():
