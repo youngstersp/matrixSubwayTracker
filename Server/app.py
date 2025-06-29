@@ -43,7 +43,7 @@ def next_q_train():
             b_unix = b_arrival_times[0]
         else:
             b_minutes_away = -1
-        print("unixtime for Q: "+ q_unix + ", " + q_minutes_away+ " Minutes Away" )
+        print("unixtime for Q: "+ str(q_unix) + ", " + str(q_minutes_away)+ " Minutes Away" )
         return jsonify({
             "q_next_arrival_unix": q_unix,
             "q_minutes_away": q_minutes_away,
