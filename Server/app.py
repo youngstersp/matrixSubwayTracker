@@ -19,8 +19,10 @@ def next_q_train():
     for entity in feed.entity:
         if not entity.HasField("trip_update"):
             continue
+        if entity.trip_update.trip.route_id != "Q":
+            continue
         for stop_time_update in entity.trip_update.stop_time_update:
-            if stop_time_update.stop_id == DEKALB_Q_MANHATTAN_STOP_ID:
+            if stop_time_update.stop_id == DEKALB_Q_MANHATTAN_STOP_ID and "Q" in entity.trip_update.trip.route_id:
                 print(entity.trip_update.trip.route_id)
                 arrival_timestamp = stop_time_update.arrival.time
                 arrival_times.append(arrival_timestamp)
