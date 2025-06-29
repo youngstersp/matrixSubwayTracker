@@ -20,9 +20,6 @@ def next_q_train():
     for entity in feed.entity:
         if not entity.HasField("trip_update"):
             continue
-        if entity.trip_update.trip.route_id != "Q" or entity.trip_update.trip.route_id != "B":
-            print("skipping")
-            continue
         for stop_time_update in entity.trip_update.stop_time_update:
             if stop_time_update.stop_id == DEKALB_Q_MANHATTAN_STOP_ID and "Q" in entity.trip_update.trip.route_id:
                 print(entity.trip_update.trip.route_id)
@@ -41,7 +38,7 @@ def next_q_train():
         return jsonify({
             "q_next_arrival_unix": q_arrival_times[0],
             "q_minutes_away": q_minutes_away,
-            "b_next_arrival_unix": q_arrival_times[0],
+            "b_next_arrival_unix": b_arrival_times[0],
             "b_minutes_away": b_minutes_away
         })
     else:
