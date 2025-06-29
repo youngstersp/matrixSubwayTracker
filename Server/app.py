@@ -32,9 +32,15 @@ def next_q_train():
 
     if q_arrival_times:
         q_arrival_times.sort()
-        q_minutes_away = int((q_arrival_times[0] - time()) / 60)
+        if(len(q_arrival_times) > 0):
+            q_minutes_away = int((q_arrival_times[0] - time()) / 60)
+        else:
+            q_minutes_away = -1
         b_arrival_times.sort()
-        b_minutes_away = int((b_arrival_times[0] - time()) / 60)
+        if(len(b_arrival_times) > 0):
+            b_minutes_away = int((b_arrival_times[0] - time()) / 60)
+        else:
+            b_minutes_away = -1
         return jsonify({
             "q_next_arrival_unix": q_arrival_times[0],
             "q_minutes_away": q_minutes_away,
