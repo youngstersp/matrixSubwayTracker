@@ -21,6 +21,8 @@ def next_q_train():
         if not entity.HasField("trip_update"):
             continue
         for stop_time_update in entity.trip_update.stop_time_update:
+            if stop_time_update.stop_id == DEKALB_Q_MANHATTAN_STOP_ID:
+                print(entity.trip_update.trip.route_id)
             if stop_time_update.stop_id == DEKALB_Q_MANHATTAN_STOP_ID and "Q" in entity.trip_update.trip.route_id:
                 arrival_timestamp = stop_time_update.arrival.time
                 q_arrival_times.append(arrival_timestamp)
@@ -28,7 +30,6 @@ def next_q_train():
                 arrival_timestamp = stop_time_update.arrival.time
                 b_arrival_times.append(arrival_timestamp)
     if q_arrival_times:
-       
         b_arrive_time = -1;
         q_arrive_time = -1;
         q_arrival_times.sort()
@@ -44,6 +45,7 @@ def next_q_train():
         else:
             b_minutes_away = -1
         print("unixtime for Q: "+ str(q_arrive_time) + ", " + str(q_minutes_away)+ " Minutes Away, Current Time: "+ str(time()) + ", " + str(q_arrive_time - time()) + "Seconds Away")
+        print("unixtime for B: "+ str(b_arrive_time) + ", " + str(b_minutes_away)+ " Minutes Away, Current Time: "+ str(time()) + ", " + str(b_arrive_time - time()) + "Seconds Away")
         return jsonify({
             "q_next_arrival_unix": q_arrive_time,
             "q_minutes_away": q_minutes_away,
