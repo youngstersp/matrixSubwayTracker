@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 from google.transit import gtfs_realtime_pb2
 import requests
-from time import time
+import time
 
 app = Flask(__name__)
 
@@ -9,66 +9,72 @@ Q_FEED_URL = "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs
 B_FEED_URL = "https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm"
 DEKALB_Q_MANHATTAN_STOP_ID = "R30N"
 
+
+def fetch_feed(feed_url):
+    response = requests.get(feed_url)
+    feed = gtfs_realtime_pb2.FeedMessage()
+    feed.ParseFromString(response.content)
+    return feed
+
+
+def extract_arrival_times(feed, stop_id, route_id_filter=None):
+    arrival_times = []
+
+    for entity in feed.entity:
+        if not entity.HasField("trip_update"):
+            continue
+
+        trip = entity.trip_update.trip
+        for stop_time in entity.trip_update.stop_time_update:
+            if stop_time.stop_id != stop_id:
+                continue
+
+            if route_id_filter and route_id_filter not in trip.route_id:
+                continue
+
+            arrival_times.append(stop_time.arrival.time)
+
+    return arrival_times
+
+
+def get_next_arrival(arrival_times):
+    now = time.time()
+    future_arrivals = sorted(t for t in arrival_times if t > now)
+    if future_arrivals:
+        arrival_time = future_arrivals[0]
+        minutes_away = int((arrival_time - now) / 60)
+        return arrival_time, minutes_away
+    return -1, -1
+
+
 @app.route("/next_train")
-def next_q_train():
-    qfeed = gtfs_realtime_pb2.FeedMessage()
-    qresponse = requests.get(Q_FEED_URL)
-    qfeed.ParseFromString(qresponse.content)
+def next_train():
+    q_feed = fetch_feed(Q_FEED_URL)
+    b_feed = fetch_feed(B_FEED_URL)
 
-    bfeed = gtfs_realtime_pb2.FeedMessage()
-    bresponse = requests.get(B_FEED_URL)
-    bfeed.ParseFromString(bresponse.content)
+    q_times = extract_arrival_times(q_feed, DEKALB_Q_MANHATTAN_STOP_ID, route_id_filter="Q")
+    b_times = (
+        extract_arrival_times(q_feed, DEKALB_Q_MANHATTAN_STOP_ID, route_id_filter="B")
+        + extract_arrival_times(b_feed, DEKALB_Q_MANHATTAN_STOP_ID, route_id_filter="B")
+    )
 
-    q_arrival_times = []
-    b_arrival_times = []
+    q_arrival_unix, q_minutes_away = get_next_arrival(q_times)
+    b_arrival_unix, b_minutes_away = get_next_arrival(b_times)
 
-    for entity in qfeed.entity:
-        if not entity.HasField("trip_update"):
-            continue
-        for stop_time_update in entity.trip_update.stop_time_update:
-            if stop_time_update.stop_id == DEKALB_Q_MANHATTAN_STOP_ID:
-                print(entity.trip_update.trip.route_id)
-            if stop_time_update.stop_id == DEKALB_Q_MANHATTAN_STOP_ID and "Q" in entity.trip_update.trip.route_id:
-                arrival_timestamp = stop_time_update.arrival.time
-                q_arrival_times.append(arrival_timestamp)
-            elif stop_time_update.stop_id == DEKALB_Q_MANHATTAN_STOP_ID and "B" in entity.trip_update.trip.route_id:
-                arrival_timestamp = stop_time_update.arrival.time
-                b_arrival_times.append(arrival_timestamp)
-    for entity in bfeed.entity:
-        if not entity.HasField("trip_update"):
-            continue
-        for stop_time_update in entity.trip_update.stop_time_update:
-            if stop_time_update.stop_id == DEKALB_Q_MANHATTAN_STOP_ID and "B" in entity.trip_update.trip.route_id:
-                arrival_timestamp = stop_time_update.arrival.time
-                b_arrival_times.append(arrival_timestamp)
-
-    if q_arrival_times:
-        b_arrive_time = -1;
-        q_arrive_time = -1;
-        q_arrival_times.sort()
-        if(len(q_arrival_times) > 0):
-            q_arrive_time = q_arrival_times[0] if q_arrival_times[0] > time() else q_arrival_times[1]
-            q_minutes_away = int((q_arrive_time - time()) / 60)
-        else:
-            q_minutes_away = -1
-        b_arrival_times.sort()
-        if(len(b_arrival_times) > 0):
-            b_arrive_time = b_arrival_times[0] if b_arrival_times[0] > time() else b_arrival_times[1]
-            b_minutes_away = int((b_arrive_time - time()) / 60)
-        else:
-            b_minutes_away = -1
-        print("unixtime for Q: "+ str(q_arrive_time) + ", " + str(q_minutes_away)+ " Minutes Away, Current Time: "+ str(time()) + ", " + str(q_arrive_time - time()) + "Seconds Away")
-        print("unixtime for B: "+ str(b_arrive_time) + ", " + str(b_minutes_away)+ " Minutes Away, Current Time: "+ str(time()) + ", " + str(b_arrive_time - time()) + "Seconds Away")
-        return jsonify({
-            "q_next_arrival_unix": q_arrive_time,
-            "q_minutes_away": q_minutes_away,
-            "b_next_arrival_unix": b_arrive_time,
-            "b_minutes_away": b_minutes_away
-        })
-    else:
+    if q_arrival_unix == -1 and b_arrival_unix == -1:
         return jsonify({"error": "No arrivals found"}), 404
+
+    print(f"Q Train → Unix: {q_arrival_unix}, {q_minutes_away} min away")
+    print(f"B Train → Unix: {b_arrival_unix}, {b_minutes_away} min away")
+
+    return jsonify({
+        "q_next_arrival_unix": q_arrival_unix,
+        "q_minutes_away": q_minutes_away,
+        "b_next_arrival_unix": b_arrival_unix,
+        "b_minutes_away": b_minutes_away
+    })
+
 
 @app.route("/")
 def root():
     return "MTA Q Train API is running"
-
