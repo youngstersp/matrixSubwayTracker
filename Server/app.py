@@ -70,7 +70,7 @@ def next_train():
         "b_next_arrival_unix": b_arrival_unix,
         "b_minutes_away": b_minutes_away,
         "d_next_arrival_unix": d_arrival_unix,
-        "d_minutes_away": d_minutes_away
+        "d_minutes_away": d_minutes_away,
     })
 
 
