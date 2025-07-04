@@ -60,9 +60,9 @@ def next_train():
     b_arrival_unix, b_minutes_away = get_next_arrival(b_times)
     d_arrival_unix, d_minutes_away = get_next_arrival(d_times)
 
-    print(f"Q Train → Unix: {q_arrival_unix-time()}, {q_minutes_away} min away")
-    print(f"B Train → Unix: {b_arrival_unix-time()}, {b_minutes_away} min away")
-    print(f"D Train → Unix: {d_arrival_unix-time()}, {d_minutes_away} min away")
+    print(f"Q Train → Unix: {q_arrival_unix}, {q_minutes_away} min away")
+    print(f"B Train → Unix: {b_arrival_unix}, {b_minutes_away} min away")
+    print(f"D Train → Unix: {d_arrival_unix}, {d_minutes_away} min away")
 
     return jsonify({
         "q_next_arrival_unix": q_arrival_unix,
