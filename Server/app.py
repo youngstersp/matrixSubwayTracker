@@ -53,20 +53,25 @@ def next_train():
     b_feed = fetch_feed(B_FEED_URL)
 
     q_times = extract_arrival_times(q_feed, DEKALB_Q_MANHATTAN_STOP_ID, route_id_filter="Q")
+    r_times = extract_arrival_times(q_feed, DEKALB_Q_MANHATTAN_STOP_ID, route_id_filter="R")
     b_times = extract_arrival_times(b_feed, DEKALB_Q_MANHATTAN_STOP_ID, route_id_filter="B")
     d_times = extract_arrival_times(b_feed, DEKALB_Q_MANHATTAN_STOP_ID, route_id_filter="D")
 
     q_arrival_unix, q_minutes_away = get_next_arrival(q_times)
+    r_arrival_unix, r_minutes_away = get_next_arrival(r_times)
     b_arrival_unix, b_minutes_away = get_next_arrival(b_times)
     d_arrival_unix, d_minutes_away = get_next_arrival(d_times)
 
     print(f"Q Train → Unix: {q_arrival_unix}, {q_minutes_away} min away")
+    print(f"R Train → Unix: {r_arrival_unix}, {r_minutes_away} min away")
     print(f"B Train → Unix: {b_arrival_unix}, {b_minutes_away} min away")
     print(f"D Train → Unix: {d_arrival_unix}, {d_minutes_away} min away")
 
     return jsonify({
         "q_next_arrival_unix": q_arrival_unix,
         "q_minutes_away": q_minutes_away,
+        "r_next_arrival_unix": r_arrival_unix,
+        "r_minutes_away": r_minutes_away,
         "b_next_arrival_unix": b_arrival_unix,
         "b_minutes_away": b_minutes_away,
         "d_next_arrival_unix": d_arrival_unix,
@@ -76,4 +81,4 @@ def next_train():
 
 @app.route("/")
 def root():
-    return "MTA Q Train API is running"
+    return "MTA Dekalb North Train API is running"
